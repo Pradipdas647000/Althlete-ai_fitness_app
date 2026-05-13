@@ -2,7 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
+import { useAuth } from "@/firebase";
 import { 
   LayoutDashboard, 
   Dumbbell, 
@@ -33,6 +35,18 @@ const secondaryItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    if (!auth) return;
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (error) {
+      console.error("Sign out error", error);
+    }
+  };
 
   return (
     <aside className="w-64 h-screen fixed left-0 top-0 hidden md:flex flex-col border-r bg-pearl/30 backdrop-blur-sm">
@@ -74,7 +88,7 @@ export function Sidebar() {
           <div className="relative">
             <p className="text-xs font-bold text-primary mb-1 uppercase tracking-widest">Level Up</p>
             <p className="text-sm font-medium mb-3">Upgrade to unlock full AI capabilities</p>
-            <Link href="/premium">
+            <Link href="/signup">
               <Badge className="bg-primary text-white hover:bg-primary/90 cursor-pointer">Explore Pro</Badge>
             </Link>
           </div>
@@ -85,13 +99,19 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-4 py-2 rounded-xl text-muted-foreground hover:bg-white hover:text-foreground transition-all text-sm font-medium group"
+              className={cn(
+                "flex items-center gap-3 px-4 py-2 rounded-xl text-muted-foreground hover:bg-white hover:text-foreground transition-all text-sm font-medium group",
+                pathname === item.href && "text-primary font-bold"
+              )}
             >
               <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
               <span>{item.label}</span>
             </Link>
           ))}
-          <button className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-destructive hover:bg-destructive/10 transition-all text-sm font-medium group">
+          <button 
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-destructive hover:bg-destructive/10 transition-all text-sm font-medium group"
+          >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
           </button>

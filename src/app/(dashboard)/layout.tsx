@@ -1,14 +1,40 @@
 
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/firebase";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user, loading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-pearl">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
+          <p className="font-headline font-bold text-xl">Loading AI Workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
   return (
     <div className="flex min-h-screen bg-pearl">
       <Sidebar />
@@ -31,12 +57,12 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center gap-3 pl-6 border-l">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold">Alex Rivers</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Premium Member</p>
+                <p className="text-sm font-bold">{user.displayName || "Athlete"}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Active Member</p>
               </div>
               <Avatar className="w-10 h-10 ring-2 ring-primary/20 ring-offset-2 ring-offset-pearl border shadow-sm">
-                <AvatarImage src="https://picsum.photos/seed/alex/100/100" />
-                <AvatarFallback>AR</AvatarFallback>
+                <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} />
+                <AvatarFallback>{(user.displayName || "A").charAt(0)}</AvatarFallback>
               </Avatar>
             </div>
           </div>

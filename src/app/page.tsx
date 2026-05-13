@@ -103,7 +103,6 @@ export default function LandingPage() {
                     priority
                     data-ai-hint="fitness athlete"
                   />
-                  {/* Floating Metric Card */}
                   <div className="absolute -bottom-6 -left-6 glass-card p-4 rounded-2xl animate-bounce duration-[3000ms]">
                     <div className="flex items-center gap-3">
                       <div className="bg-emerald-100 p-2 rounded-lg">
@@ -121,7 +120,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Grid */}
+        {/* Features Section */}
         <section id="features" className="py-24 bg-pearl/50">
           <div className="container mx-auto px-4 text-center mb-16 space-y-4">
             <h2 className="font-headline text-4xl font-bold">Engineered for Results</h2>
@@ -188,6 +187,7 @@ export default function LandingPage() {
               ]}
               buttonText="Join Free"
               variant="outline"
+              href="/signup"
             />
             <PricingCard 
               name="Performance Pro"
@@ -203,6 +203,7 @@ export default function LandingPage() {
               buttonText="Go Premium"
               variant="default"
               recommended
+              href="/signup"
             />
           </div>
         </section>
@@ -232,46 +233,25 @@ export default function LandingPage() {
       </main>
 
       <footer className="bg-pearl pt-20 pb-10 border-t">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-12 mb-16">
-            <div className="space-y-4">
+        <div className="container mx-auto px-4 text-center">
+           <div className="flex justify-center mb-8">
               <Link href="/" className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <Zap className="text-white w-5 h-5" fill="currentColor" />
                 </div>
                 <span className="font-headline text-xl font-bold">AIthlete</span>
               </Link>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Empowering humans through intelligent data and precision fitness engineering.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#" className="hover:text-primary transition-colors">Features</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">AI Coach</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Pricing</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Updates</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#" className="hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Status</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="text-center pt-10 border-t text-sm text-muted-foreground">
+           </div>
+           <p className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+              Empowering humans through intelligent data and precision fitness engineering.
+           </p>
+           <div className="flex justify-center gap-8 mb-12">
+              <Link href="#" className="text-sm hover:text-primary">Features</Link>
+              <Link href="#" className="text-sm hover:text-primary">Pricing</Link>
+              <Link href="#" className="text-sm hover:text-primary">About</Link>
+              <Link href="#" className="text-sm hover:text-primary">Support</Link>
+           </div>
+           <div className="text-xs text-muted-foreground pt-10 border-t">
             © {new Date().getFullYear()} AIthlete SaaS. Built for performance.
           </div>
         </div>
@@ -280,7 +260,7 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, description, delay }: { icon: React.ReactNode, title: string, description: string, delay: string }) {
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string, delay: string }) {
   return (
     <div className="glass-card p-8 rounded-3xl hover:scale-105 transition-all duration-300 group">
       <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-500">
@@ -294,7 +274,7 @@ function FeatureCard({ icon, title, description, delay }: { icon: React.ReactNod
   );
 }
 
-function PricingCard({ name, price, description, features, buttonText, variant, recommended = false }: any) {
+function PricingCard({ name, price, description, features, buttonText, variant, href, recommended = false }: any) {
   return (
     <div className={`glass-card p-10 rounded-3xl relative overflow-hidden flex flex-col h-full ${recommended ? 'ring-2 ring-primary scale-105 z-10' : ''}`}>
       {recommended && (
@@ -320,7 +300,7 @@ function PricingCard({ name, price, description, features, buttonText, variant, 
           </li>
         ))}
       </ul>
-      <Link href="/signup">
+      <Link href={href}>
         <Button variant={variant} className={`w-full h-12 rounded-full font-bold ${variant === 'default' ? 'bg-primary hover:bg-primary/90' : 'border-2'}`}>
           {buttonText}
         </Button>
