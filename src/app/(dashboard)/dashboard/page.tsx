@@ -1,6 +1,9 @@
 
 "use client";
 
+import { useMemo } from "react";
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +16,9 @@ import {
   ArrowDownRight,
   TrendingUp,
   Activity,
-  Heart
+  Heart,
+  BrainCircuit,
+  Info
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -46,17 +51,38 @@ const activityData = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useUser();
+  const db = useFirestore();
+  const { data: profile, loading: profileLoading } = useDoc(user && db ? doc(db, "users", user.uid) : null);
+
+  const bmiData = useMemo(() => {
+    if (!profile?.weightKg || !profile?.heightCm) return null;
+    const heightInMeters = profile.heightCm / 100;
+    const bmi = (profile.weightKg / (heightInMeters * heightInMeters)).toFixed(1);
+    
+    let category = "Healthy";
+    let color = "text-emerald-500";
+    const bmiVal = parseFloat(bmi);
+    if (bmiVal < 18.5) { category = "Underweight"; color = "text-sky"; }
+    else if (bmiVal >= 25 && bmiVal < 30) { category = "Overweight"; color = "text-orange-500"; }
+    else if (bmiVal >= 30) { category = "Obese"; color = "text-rose-500"; }
+    
+    return { value: bmi, category, color };
+  }, [profile]);
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="font-headline text-3xl font-bold tracking-tight mb-2">Welcome Back, Alex</h1>
+          <h1 className="font-headline text-3xl font-bold tracking-tight mb-2">
+            Welcome Back, {user?.displayName?.split(' ')[0] || "Athlete"}
+          </h1>
           <p className="text-muted-foreground">Your performance is up 12% compared to last week. Keep it up!</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="bg-white px-3 py-1 text-xs font-bold gap-2">
             <Calendar className="w-3 h-3 text-primary" />
-            Oct 20 - Oct 27
+            Active Period: Oct 20 - Oct 27
           </Badge>
           <Badge className="bg-primary text-white px-3 py-1 text-xs font-bold gap-2">
             <Trophy className="w-3 h-3" />
@@ -78,9 +104,9 @@ export default function DashboardPage() {
         <StatsCard 
           icon={<Weight className="text-cobalt" />}
           label="Current Weight"
-          value="78.5"
+          value={profile?.weightKg ? String(profile.weightKg) : "--"}
           unit="kg"
-          trend="-0.4kg"
+          trend={profile?.weightKg ? "-0.4kg" : "No Data"}
           positive={true}
         />
         <StatsCard 
@@ -160,23 +186,36 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="font-headline text-xl">BMI & Body Composition</CardTitle>
           </CardHeader>
-          <CardContent className="flex items-center gap-8 py-4">
-            <div className="w-32 h-32 rounded-full border-8 border-primary flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold">22.4</span>
-              <span className="text-[10px] text-muted-foreground font-bold uppercase">Healthy</span>
-            </div>
-            <div className="flex-1 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Body Fat %</span>
-                <span className="font-bold">14.2%</span>
+          <CardContent className="flex flex-col sm:flex-row items-center gap-8 py-4">
+            {bmiData ? (
+              <>
+                <div className="w-32 h-32 rounded-full border-8 border-primary flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold">{bmiData.value}</span>
+                  <span className={`text-[10px] font-bold uppercase ${bmiData.color}`}>{bmiData.category}</span>
+                </div>
+                <div className="flex-1 w-full space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Biometric Goal</span>
+                    <span className="font-bold">21.5 target</span>
+                  </div>
+                  <Progress value={85} className="h-2" />
+                  <div className="flex items-center gap-2 p-3 bg-pearl rounded-xl text-xs text-muted-foreground">
+                    <Info className="w-4 h-4 text-primary shrink-0" />
+                    <span>Based on your height of {profile?.heightCm}cm and weight of {profile?.weightKg}kg.</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center w-full py-6 text-center space-y-4">
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <p className="font-bold">Biometrics Incomplete</p>
+                  <p className="text-sm text-muted-foreground max-w-[250px]">Please update your height and weight in settings to calculate your current BMI.</p>
+                </div>
               </div>
-              <Progress value={14.2} className="h-2" />
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Muscle Mass</span>
-                <span className="font-bold">64.5kg</span>
-              </div>
-              <Progress value={75} className="h-2" />
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -184,13 +223,17 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="font-headline text-xl">Activity Mix</CardTitle>
           </CardHeader>
-          <CardContent className="h-[180px]">
+          <CardContent className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={activityData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
                 <YAxis hide />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                <Tooltip 
+                   cursor={{fill: 'transparent'}}
+                   contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40}>
                   {activityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -238,5 +281,3 @@ function GoalItem({ label, progress }: { label: string, progress: number }) {
     </div>
   );
 }
-
-import { BrainCircuit } from "lucide-react";
