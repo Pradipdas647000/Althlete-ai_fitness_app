@@ -65,12 +65,14 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/signup">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg rounded-full px-10 h-14 group">
-                      Start Your Journey <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                      Get Started <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <Button size="lg" variant="outline" className="text-lg rounded-full px-10 h-14 border-2">
-                    View Demo
-                  </Button>
+                  <Link href="/login">
+                    <Button size="lg" variant="outline" className="text-lg rounded-full px-10 h-14 border-2">
+                      Log In
+                    </Button>
+                  </Link>
                 </div>
                 <div className="flex items-center gap-6 pt-4">
                   <div className="flex -space-x-3">
@@ -246,10 +248,10 @@ export default function LandingPage() {
               Empowering humans through intelligent data and precision fitness engineering.
            </p>
            <div className="flex justify-center gap-8 mb-12">
-              <Link href="#" className="text-sm hover:text-primary">Features</Link>
-              <Link href="#" className="text-sm hover:text-primary">Pricing</Link>
-              <Link href="#" className="text-sm hover:text-primary">About</Link>
-              <Link href="#" className="text-sm hover:text-primary">Support</Link>
+              <Link href="#features" className="text-sm hover:text-primary">Features</Link>
+              <Link href="#pricing" className="text-sm hover:text-primary">Pricing</Link>
+              <Link href="/login" className="text-sm hover:text-primary">Log In</Link>
+              <Link href="/signup" className="text-sm hover:text-primary">Sign Up</Link>
            </div>
            <div className="text-xs text-muted-foreground pt-10 border-t">
             © {new Date().getFullYear()} AIthlete SaaS. Built for performance.
