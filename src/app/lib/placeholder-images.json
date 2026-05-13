@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-fitness",
+      "description": "A high-performance athlete training in a futuristic gym",
+      "imageUrl": "https://picsum.photos/seed/ai-fitness-1/1200/800",
+      "imageHint": "fitness athlete"
+    },
+    {
+      "id": "feature-workout",
+      "description": "Smart workout tracking interface",
+      "imageUrl": "https://picsum.photos/seed/ai-fitness-2/600/400",
+      "imageHint": "workout gym"
+    },
+    {
+      "id": "feature-nutrition",
+      "description": "Healthy meal prep and nutrition planning",
+      "imageUrl": "https://picsum.photos/seed/ai-fitness-3/600/400",
+      "imageHint": "healthy food"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "Professional athlete portrait",
+      "imageUrl": "https://picsum.photos/seed/user-1/100/100",
+      "imageHint": "person portrait"
+    }
+  ]
+}
