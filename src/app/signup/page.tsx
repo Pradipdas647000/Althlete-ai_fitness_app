@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -41,6 +42,11 @@ export default function SignUpPage() {
         onboardingComplete: false
       });
 
+      toast({
+        title: "Account Created Successfully!",
+        description: `Welcome to AIthlete, ${name}! Your profile is being prepared.`,
+      });
+
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Failed to create account.");
@@ -65,6 +71,11 @@ export default function SignUpPage() {
         createdAt: new Date().toISOString(),
         onboardingComplete: false
       }, { merge: true });
+
+      toast({
+        title: "Signed up with Google",
+        description: "Welcome back! Redirecting to your dashboard...",
+      });
 
       router.push("/dashboard");
     } catch (err: any) {
