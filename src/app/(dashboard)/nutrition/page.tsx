@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -15,17 +14,28 @@ import {
   Clock,
   Sparkles,
   Loader2,
-  Utensils
+  Utensils,
+  Camera,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Info
 } from "lucide-react";
 import { generateWeeklyMealPlan, GenerateWeeklyMealPlanOutput } from "@/ai/flows/generate-weekly-meal-plan";
+import { analyzeFoodImage, AnalyzeFoodImageOutput } from "@/ai/flows/analyze-food-image";
 import { useUser, useDoc, useFirestore } from "@/firebase";
 import { doc } from "firebase/firestore";
+import Image from "next/image";
 
 export default function NutritionPage() {
   const [waterCups, setWaterCups] = useState(6);
   const targetWater = 10;
   const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [mealPlan, setMealPlan] = useState<GenerateWeeklyMealPlanOutput | null>(null);
+  const [analysis, setAnalysis] = useState<AnalyzeFoodImageOutput | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user } = useUser();
   const db = useFirestore();
@@ -38,7 +48,7 @@ export default function NutritionPage() {
         dietaryPreferences: ["high protein", "low carb"],
         allergies: [],
         calorieTarget: 2400,
-        goal: "gain muscle",
+        goal: profile?.fitnessLevel === "advanced" ? "gain muscle" : "maintain weight",
         weightKg: profile?.weightKg || 75,
         heightCm: profile?.heightCm || 180,
         age: 28,
@@ -52,6 +62,39 @@ export default function NutritionPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+      handleAnalyze(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAnalyze = async (dataUri: string) => {
+    setAnalyzing(true);
+    setAnalysis(null);
+    try {
+      const result = await analyzeFoodImage({
+        photoDataUri: dataUri,
+        userGoal: profile?.fitnessLevel || "fitness optimization",
+      });
+      setAnalysis(result);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -90,7 +133,112 @@ export default function NutritionPage() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="font-headline text-2xl font-bold flex items-center gap-2">
+          
+          {/* AI Food Scanner Section */}
+          <Card className="glass-card rounded-3xl border-none shadow-xl overflow-hidden bg-gradient-to-br from-white/40 to-primary/5">
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                <Camera className="w-6 h-6 text-primary" />
+                AI Vision Scanner
+              </CardTitle>
+              <CardDescription>Upload a photo of your meal for an instant nutritional breakdown.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="w-full md:w-1/2 space-y-4">
+                  <div 
+                    onClick={triggerFileSelect}
+                    className="aspect-square rounded-3xl border-2 border-dashed border-primary/20 bg-white/50 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-all group relative overflow-hidden"
+                  >
+                    {previewUrl ? (
+                      <Image src={previewUrl} alt="Food preview" fill className="object-cover" />
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Utensils className="w-8 h-8 text-primary" />
+                        </div>
+                        <p className="mt-4 text-sm font-bold text-muted-foreground">Click to upload photo</p>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFileChange} 
+                    />
+                  </div>
+                  <Button 
+                    onClick={triggerFileSelect} 
+                    disabled={analyzing} 
+                    className="w-full rounded-2xl h-12 gap-2"
+                  >
+                    {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    {previewUrl ? "Scan Another" : "Select Food Image"}
+                  </Button>
+                </div>
+
+                <div className="flex-1 space-y-6">
+                  {analyzing ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12">
+                      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                      <p className="font-headline font-bold text-primary animate-pulse uppercase tracking-widest text-xs">Analyzing Molecular Content...</p>
+                    </div>
+                  ) : analysis ? (
+                    <div className="space-y-6 animate-fade-in-up">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-2xl font-bold">{analysis.foodName}</h3>
+                        <Badge variant={
+                          analysis.assessment.rating === 'excellent' || analysis.assessment.rating === 'good' 
+                            ? "default" 
+                            : analysis.assessment.rating === 'neutral' ? "secondary" : "destructive"
+                        } className="rounded-full px-4 capitalize">
+                          {analysis.assessment.rating}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <MacroBadge label="Calories" value={`${analysis.nutrition.calories} kcal`} icon={<Zap className="w-3 h-3" />} />
+                        <MacroBadge label="Protein" value={`${analysis.nutrition.proteinGrams}g`} icon={<CheckCircle2 className="w-3 h-3" />} />
+                        <MacroBadge label="Carbs" value={`${analysis.nutrition.carbGrams}g`} icon={<Apple className="w-3 h-3" />} />
+                        <MacroBadge label="Fats" value={`${analysis.nutrition.fatGrams}g`} icon={<Droplet className="w-3 h-3" />} />
+                      </div>
+
+                      <div className={`p-4 rounded-2xl border flex gap-3 ${
+                        analysis.assessment.rating === 'excellent' || analysis.assessment.rating === 'good'
+                        ? 'bg-emerald-50 border-emerald-100'
+                        : analysis.assessment.rating === 'neutral'
+                        ? 'bg-sky-50 border-sky-100'
+                        : 'bg-rose-50 border-rose-100'
+                      }`}>
+                        <div className="shrink-0 mt-1">
+                          {analysis.assessment.rating === 'excellent' || analysis.assessment.rating === 'good' 
+                            ? <ThumbsUp className="w-5 h-5 text-emerald-600" /> 
+                            : <AlertCircle className="w-5 h-5 text-rose-600" />
+                          }
+                        </div>
+                        <div className="space-y-1">
+                          <p className={`font-bold text-sm ${
+                            analysis.assessment.rating === 'excellent' || analysis.assessment.rating === 'good' ? 'text-emerald-900' : 'text-rose-900'
+                          }`}>{analysis.assessment.verdict}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed italic">"{analysis.assessment.reasoning}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12 text-muted-foreground">
+                      <div className="w-16 h-16 bg-pearl rounded-full flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 opacity-20" />
+                      </div>
+                      <p className="text-sm max-w-[200px]">Upload a photo to see if your meal aligns with your fitness goals.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <h2 className="font-headline text-2xl font-bold flex items-center gap-2 mt-8">
             <ChefHat className="w-6 h-6 text-primary" />
             {mealPlan ? "Your Precision Meal Plan" : "Today's Schedule"}
           </h2>
@@ -181,6 +329,20 @@ export default function NutritionPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MacroBadge({ label, value, icon }: any) {
+  return (
+    <div className="bg-pearl/50 p-3 rounded-2xl flex items-center gap-3">
+      <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest leading-none mb-1">{label}</p>
+        <p className="text-sm font-bold leading-none">{value}</p>
       </div>
     </div>
   );
