@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Loader2, CheckCircle2 } from "lucide-react";
+import { Zap, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -62,26 +62,31 @@ export default function SignUpPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
-      // 4. Show success state and toast
+      // 4. Show success state
       setIsSuccess(true);
       toast({
         title: "Account Created Successfully!",
         description: `Welcome to AIthlete, ${name}!`,
       });
 
-      // 5. Redirect after a short delay to show success state
+      // 5. Redirect after a short delay
       setTimeout(() => {
         router.push("/dashboard");
-      }, 1500);
+      }, 2000);
 
     } catch (err: any) {
-      console.error(err);
+      // Do not use console.error() to avoid triggering dev overlays for expected auth errors
       let message = "An error occurred during sign up.";
       
-      if (err.code === 'auth/email-already-in-use') message = "This email is already registered.";
-      if (err.code === 'auth/weak-password') message = "Password should be at least 6 characters.";
-      if (err.code === 'auth/unauthorized-domain') message = "Domain unauthorized. Please whitelist this domain in Firebase Console.";
-      if (err.code === 'auth/configuration-not-found') message = "Authentication is not enabled in the Firebase console.";
+      if (err.code === 'auth/email-already-in-use') {
+        message = "This email is already registered. Please try logging in instead.";
+      } else if (err.code === 'auth/weak-password') {
+        message = "Password should be at least 6 characters.";
+      } else if (err.code === 'auth/unauthorized-domain') {
+        message = "This domain is not authorized. Please check your Firebase Console settings.";
+      } else if (err.code === 'auth/invalid-email') {
+        message = "Please enter a valid email address.";
+      }
       
       setError(message);
       setLoading(false);
@@ -124,12 +129,13 @@ export default function SignUpPage() {
 
       setTimeout(() => {
         router.push("/dashboard");
-      }, 1500);
+      }, 2000);
 
     } catch (err: any) {
-      console.error(err);
       let message = "Failed to sign up with Google.";
-      if (err.code === 'auth/unauthorized-domain') message = "Domain unauthorized. Please whitelist this domain in Firebase Console.";
+      if (err.code === 'auth/unauthorized-domain') {
+        message = "This domain is not authorized for Google Sign-in.";
+      }
       setError(message);
       setLoading(false);
     }
@@ -138,18 +144,18 @@ export default function SignUpPage() {
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pearl px-4 py-12">
-        <Card className="w-full max-w-md glass-card rounded-3xl border-none shadow-2xl p-8 text-center space-y-6">
+        <Card className="w-full max-w-md glass-card rounded-3xl border-none shadow-2xl p-10 text-center space-y-6">
           <div className="flex justify-center">
-             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center animate-bounce">
-                <CheckCircle2 className="w-12 h-12 text-emerald-600" />
+             <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center animate-pulse">
+                <CheckCircle2 className="w-14 h-14 text-emerald-600" />
              </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h2 className="text-3xl font-headline font-bold text-emerald-600 uppercase tracking-tight">Account Created!</h2>
-            <p className="text-muted-foreground font-medium italic">Preparing your performance lab...</p>
+            <p className="text-muted-foreground font-medium italic">Redirecting to your performance lab...</p>
           </div>
-          <div className="flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+          <div className="flex justify-center pt-4">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
           </div>
         </Card>
       </div>
@@ -183,6 +189,7 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={loading}
                 className="rounded-xl h-11"
               />
             </div>
@@ -195,6 +202,7 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
                 className="rounded-xl h-11"
               />
             </div>
@@ -206,15 +214,17 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
                 className="rounded-xl h-11"
               />
             </div>
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium">
-                {error}
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
-            <Button type="submit" disabled={loading} className="w-full h-11 bg-primary hover:bg-primary/90 rounded-xl font-bold">
+            <Button type="submit" disabled={loading} className="w-full h-11 bg-primary hover:bg-primary/90 rounded-xl font-bold transition-all shadow-lg shadow-primary/20">
               {loading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -233,11 +243,11 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <Button variant="outline" onClick={handleGoogleSignUp} disabled={loading} className="w-full h-11 rounded-xl font-bold border-2">
+          <Button variant="outline" onClick={handleGoogleSignUp} disabled={loading} className="w-full h-11 rounded-xl font-bold border-2 hover:bg-muted/50 transition-colors">
              Sign up with Google
           </Button>
         </CardContent>
-        <CardFooter className="justify-center">
+        <CardFooter className="justify-center border-t p-6">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link href="/login" className="text-primary hover:underline font-bold">
