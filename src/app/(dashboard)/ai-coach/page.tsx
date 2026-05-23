@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generatePersonalizedWorkoutPlan, GenerateWorkoutPlanOutput } from "@/ai/flows/generate-personalized-workout-plan";
-import { BrainCircuit, Loader2, Dumbbell, Calendar, HeartPulse, ShieldCheck, Sparkles } from "lucide-react";
+import { BrainCircuit, Loader2, Dumbbell, HeartPulse, ShieldCheck, Sparkles, CheckCircle2, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function AICoachPage() {
@@ -226,5 +226,3 @@ export default function AICoachPage() {
     </div>
   );
 }
-
-import { CheckCircle2 } from "lucide-react";
