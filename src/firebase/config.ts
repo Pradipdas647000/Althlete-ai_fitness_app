@@ -1,7 +1,7 @@
 
 'use client';
 
-// Hardcoded for demo stability as requested
+// Hardcoded for demo stability as requested by the user
 export const firebaseConfig = {
   apiKey: "AIzaSyAH4q2duTfPkR3HPXi6eRup7RpwboEc9SI",
   authDomain: "fitnessapp-fc83c.firebaseapp.com",

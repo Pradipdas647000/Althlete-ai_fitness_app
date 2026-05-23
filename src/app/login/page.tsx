@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Loader2 } from "lucide-react";
+import { Zap, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
   const auth = useAuth();
 
@@ -27,16 +29,20 @@ export default function LoginPage() {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      setIsSuccess(true);
       toast({
         title: "Welcome Back!",
         description: "Signed in successfully. Redirecting...",
       });
-      router.push("/dashboard");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1200);
     } catch (err: any) {
       console.error(err);
       let message = "Invalid email or password.";
       if (err.code === 'auth/user-not-found') message = "No account found with this email.";
       if (err.code === 'auth/wrong-password') message = "Incorrect password.";
+      if (err.code === 'auth/unauthorized-domain') message = "Domain unauthorized. Please whitelist this domain in Firebase Console.";
       if (err.code === 'auth/configuration-not-found') message = "Auth configuration missing. Please enable it in Firebase Console.";
       
       setError(message);
@@ -51,17 +57,43 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      setIsSuccess(true);
       toast({
         title: "Success",
         description: "Logged in with Google.",
       });
-      router.push("/dashboard");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1200);
     } catch (err: any) {
       console.error(err);
-      setError("Failed to sign in with Google.");
+      let message = "Failed to sign in with Google.";
+      if (err.code === 'auth/unauthorized-domain') message = "Domain unauthorized. Please whitelist this domain in Firebase Console.";
+      setError(message);
       setLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-pearl px-4 py-12">
+        <Card className="w-full max-w-md glass-card rounded-3xl border-none shadow-2xl p-8 text-center space-y-6">
+          <div className="flex justify-center">
+             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-12 h-12 text-primary" />
+             </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-3xl font-headline font-bold text-primary uppercase tracking-tight">Authenticated</h2>
+            <p className="text-muted-foreground font-medium italic">Synchronizing your performance data...</p>
+          </div>
+          <div className="flex justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-pearl px-4 py-12">
