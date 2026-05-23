@@ -1,8 +1,8 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   devIndicators: false,
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -29,7 +29,19 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
+  },
+  serverExternalPackages: ['genkit', '@genkit-ai/google-genai', '@genkit-ai/ai'],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
 };
 
