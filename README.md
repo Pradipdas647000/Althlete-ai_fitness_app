@@ -22,20 +22,18 @@ AIthlete is a next-generation fitness ecosystem designed to optimize human perfo
 - **Charts**: [Recharts](https://recharts.org/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 
-## 📂 Project Structure
+## 🌍 Vercel Deployment
 
-```text
-src/
-├── ai/                # Genkit flows and AI prompt definitions
-│   └── flows/         # Specialized AI agents (Workout, Nutrition, Summary)
-├── app/               # Next.js App Router (Dashboard, Auth, Landing)
-├── components/        # Reusable UI and Dashboard components
-├── firebase/          # Client-side SDK configuration and hooks
-├── hooks/             # Custom React hooks (toasts, mobile detection)
-└── lib/               # Utility functions and placeholder assets
-```
+Deploying AIthlete to Vercel is straightforward:
 
-## 🧪 Getting Started
+1. **Push to GitHub**: Push your local repository to a new GitHub repository.
+2. **Import to Vercel**: Go to [vercel.com/new](https://vercel.com/new) and import your project.
+3. **Configure Environment Variables**:
+   In the Vercel project settings, add the following environment variable:
+   - `GOOGLE_GENAI_API_KEY`: Your Gemini API key from [Google AI Studio](https://aistudio.google.com/).
+4. **Deploy**: Click "Deploy". Vercel will automatically detect Next.js and build your app.
+
+## 🧪 Local Development
 
 1. **Install Dependencies**:
    ```bash
@@ -45,12 +43,15 @@ src/
 2. **Configure Firebase**:
    Ensure your Firebase credentials are set in `src/firebase/config.ts`. Enable **Email/Password** and **Google** sign-in providers in the Firebase Console.
 
-3. **Run Development Server**:
+3. **Set Environment Variables**:
+   Create a `.env` file based on `.env.example` and add your `GOOGLE_GENAI_API_KEY`.
+
+4. **Run Development Server**:
    ```bash
    npm run dev
    ```
 
-4. **Run Genkit Dev UI**:
+5. **Run Genkit Dev UI**:
    ```bash
    npm run genkit:dev
    ```
