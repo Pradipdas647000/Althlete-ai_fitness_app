@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Search, Menu, Zap } from "lucide-react";
+import { Bell, Search, Menu, Zap, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function DashboardLayout({
   children,
@@ -25,12 +26,13 @@ export default function DashboardLayout({
     }
   }, [user, loading, router]);
 
+  // Streamlined loading state to feel faster
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-pearl animate-pulse">
+      <div className="min-h-screen flex items-center justify-center bg-pearl">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <h2 className="font-headline font-bold text-xl text-primary/80">Syncing AIthlete Core...</h2>
+          <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" />
+          <h2 className="font-headline font-bold text-lg text-primary/80">Verifying Identity...</h2>
         </div>
       </div>
     );
@@ -41,7 +43,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-pearl">
       {/* Desktop Sidebar */}
-      <aside className="w-64 h-screen fixed left-0 top-0 hidden md:flex flex-col border-r">
+      <aside className="w-64 h-screen fixed left-0 top-0 hidden md:flex flex-col border-r bg-white/50 backdrop-blur-md">
         <Sidebar />
       </aside>
 
@@ -102,5 +104,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-
-import Link from "next/link";

@@ -7,8 +7,7 @@ import { FirebaseProvider } from './provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 /**
- * Hydration-safe Client Provider that ensures the initial client render
- * matches the server render, then initializes Firebase.
+ * Optimized Client Provider that ensures fast hydration and idempotent Firebase initialization.
  */
 export const FirebaseClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
@@ -24,15 +23,14 @@ export const FirebaseClientProvider: React.FC<{ children: React.ReactNode }> = (
     return null;
   }, []);
 
-  // During SSR and the very first client render, 'mounted' is false.
-  // This ensures the HTML matches exactly, preventing hydration errors.
+  // Avoid hydration mismatch by waiting for mount, but keeping the transition lean.
   if (!mounted || !firebase) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-headline font-bold text-primary animate-pulse tracking-widest uppercase">
-            Initializing AIthlete...
+      <div className="min-h-screen bg-pearl flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-[10px] font-headline font-bold text-primary animate-pulse tracking-widest uppercase">
+            Syncing AIthlete Core...
           </p>
         </div>
       </div>

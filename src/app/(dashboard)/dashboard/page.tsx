@@ -7,6 +7,7 @@ import { doc } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Flame, 
   Weight, 
@@ -103,7 +104,7 @@ export default function DashboardPage() {
         <StatsCard 
           icon={<Weight className="text-cobalt" />}
           label="Current Weight"
-          value={profile?.weightKg ? String(profile.weightKg) : "--"}
+          value={profileLoading ? "..." : (profile?.weightKg ? String(profile.weightKg) : "--")}
           unit="kg"
           trend={profile?.weightKg ? "-0.4kg" : "No Data"}
           positive={true}
@@ -186,7 +187,15 @@ export default function DashboardPage() {
             <CardTitle className="font-headline text-lg md:text-xl">Biometrics</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row items-center gap-6 md:gap-8 py-4">
-            {bmiData ? (
+            {profileLoading ? (
+              <div className="flex gap-4 w-full items-center">
+                <Skeleton className="w-24 h-24 md:w-32 md:h-32 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+            ) : bmiData ? (
               <>
                 <div className="w-24 h-24 md:w-32 md:h-32 shrink-0 rounded-full border-8 border-primary flex flex-col items-center justify-center">
                   <span className="text-2xl md:text-3xl font-bold">{bmiData.value}</span>
