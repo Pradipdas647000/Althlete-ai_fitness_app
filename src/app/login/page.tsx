@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -26,10 +27,19 @@ export default function LoginPage() {
     setError("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Welcome Back!",
+        description: "Signed in successfully. Redirecting...",
+      });
       router.push("/dashboard");
     } catch (err: any) {
-      setError("Invalid email or password. Please try again.");
-    } finally {
+      console.error(err);
+      let message = "Invalid email or password.";
+      if (err.code === 'auth/user-not-found') message = "No account found with this email.";
+      if (err.code === 'auth/wrong-password') message = "Incorrect password.";
+      if (err.code === 'auth/configuration-not-found') message = "Auth configuration missing. Please enable it in Firebase Console.";
+      
+      setError(message);
       setLoading(false);
     }
   };
@@ -41,10 +51,14 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      toast({
+        title: "Success",
+        description: "Logged in with Google.",
+      });
       router.push("/dashboard");
     } catch (err: any) {
+      console.error(err);
       setError("Failed to sign in with Google.");
-    } finally {
       setLoading(false);
     }
   };
@@ -96,9 +110,18 @@ export default function LoginPage() {
                 className="rounded-xl h-11"
               />
             </div>
-            {error && <p className="text-xs text-destructive font-medium">{error}</p>}
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium">
+                {error}
+              </div>
+            )}
             <Button type="submit" disabled={loading} className="w-full h-11 bg-primary hover:bg-primary/90 rounded-xl font-bold">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In"}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Authenticating...
+                </div>
+              ) : "Sign In"}
             </Button>
           </form>
 

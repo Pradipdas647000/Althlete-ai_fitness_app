@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Zap, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -26,31 +28,54 @@ export default function SignUpPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !db) return;
+    
     setLoading(true);
     setError("");
+    
     try {
+      // 1. Create the user account
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
+      // 2. Update the Auth profile (Display Name)
       await updateProfile(user, { displayName: name });
       
-      await setDoc(doc(db, "users", user.uid), {
+      // 3. Create the User Document in Firestore
+      // We don't await this to keep the UI responsive, as it will sync in the background
+      const userDocRef = doc(db, "users", user.uid);
+      const userData = {
         uid: user.uid,
         displayName: name,
         email: email,
         createdAt: new Date().toISOString(),
         onboardingComplete: false
-      });
+      };
 
+      setDoc(userDocRef, userData)
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create',
+            requestResourceData: userData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+
+      // 4. Show success and redirect
       toast({
         title: "Account Created Successfully!",
-        description: `Welcome to AIthlete, ${name}! Your profile is being prepared.`,
+        description: `Welcome to AIthlete, ${name}! Redirecting to your dashboard...`,
       });
 
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Failed to create account.");
-    } finally {
+      console.error(err);
+      let message = "An error occurred during sign up.";
+      if (err.code === 'auth/email-already-in-use') message = "This email is already registered.";
+      if (err.code === 'auth/weak-password') message = "Password should be at least 6 characters.";
+      if (err.code === 'auth/configuration-not-found') message = "Authentication is not enabled in the Firebase console.";
+      
+      setError(message);
       setLoading(false);
     }
   };
@@ -64,23 +89,34 @@ export default function SignUpPage() {
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
 
-      await setDoc(doc(db, "users", user.uid), {
+      const userDocRef = doc(db, "users", user.uid);
+      const userData = {
         uid: user.uid,
         displayName: user.displayName || "Athlete",
         email: user.email,
         createdAt: new Date().toISOString(),
         onboardingComplete: false
-      }, { merge: true });
+      };
+
+      setDoc(userDocRef, userData, { merge: true })
+        .catch(async () => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'write',
+            requestResourceData: userData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
 
       toast({
-        title: "Signed up with Google",
-        description: "Welcome back! Redirecting to your dashboard...",
+        title: "Success",
+        description: "Signed up with Google. Welcome to AIthlete!",
       });
 
       router.push("/dashboard");
     } catch (err: any) {
+      console.error(err);
       setError("Failed to sign up with Google.");
-    } finally {
       setLoading(false);
     }
   };
@@ -138,9 +174,18 @@ export default function SignUpPage() {
                 className="rounded-xl h-11"
               />
             </div>
-            {error && <p className="text-xs text-destructive font-medium">{error}</p>}
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium">
+                {error}
+              </div>
+            )}
             <Button type="submit" disabled={loading} className="w-full h-11 bg-primary hover:bg-primary/90 rounded-xl font-bold">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign Up"}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating Account...
+                </div>
+              ) : "Sign Up"}
             </Button>
           </form>
 
