@@ -24,10 +24,10 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-pearl">
+      <div className="min-h-screen flex items-center justify-center bg-pearl animate-pulse">
         <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-          <p className="font-headline font-bold text-xl">Loading AI Workspace...</p>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <h2 className="font-headline font-bold text-xl text-primary/80">Syncing AIthlete Core...</h2>
         </div>
       </div>
     );
